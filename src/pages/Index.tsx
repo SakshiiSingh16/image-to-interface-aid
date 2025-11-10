@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RailwayTrack } from "@/components/RailwayTrack";
+import { MovingTrack } from "@/components/MovingTrack";
 import { SpeedDisplay } from "@/components/SpeedDisplay";
 import { SignalStatus } from "@/components/SignalStatus";
-import { CommunicationPanel } from "@/components/CommunicationPanel";
 import { AutoSignalResponse } from "@/components/AutoSignalResponse";
-import { TrainControls } from "@/components/TrainControls";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 
 interface TrainState {
@@ -15,6 +15,7 @@ interface TrainState {
   color: string;
   position: number;
   speed: number;
+  distance: number;
 }
 
 interface SignalState {
@@ -23,44 +24,19 @@ interface SignalState {
 }
 
 const Index = () => {
-  const [isEmergencyStopping, setIsEmergencyStopping] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(true);
+  const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
+  const [selectedTrain, setSelectedTrain] = useState<string | null>(null);
   
   const [trains, setTrains] = useState<TrainState[]>([
-    { id: "train-a", label: "TRAIN A", color: "#00d4ff", position: 20, speed: 72 },
-    { id: "train-b", label: "TRAIN B", color: "#ff9500", position: 50, speed: 60 },
-    { id: "train-c", label: "TRAIN C", color: "#ff3366", position: 75, speed: 45 },
+    { id: "train-a", label: "UP TRAIN", color: "#00d4ff", position: 50, speed: 72, distance: 3 },
+    { id: "train-b", label: "DOWN TRAIN", color: "#ff9500", position: 50, speed: 60, distance: 5 },
   ]);
   
   const [signals, setSignals] = useState<Record<string, SignalState>>({
-    "track-a": { left: "safe", right: "safe" },
-    "track-b": { left: "safe", right: "caution" },
-    "track-c": { left: "safe", right: "safe" },
+    "track-up": { left: "safe", right: "safe" },
+    "track-down": { left: "safe", right: "caution" },
   });
 
-  // Animate train movement
-  useEffect(() => {
-    if (!isAnimating || isEmergencyStopping) return;
-    
-    const interval = setInterval(() => {
-      setTrains(prevTrains => 
-        prevTrains.map(train => ({
-          ...train,
-          position: train.position >= 95 ? 5 : train.position + (train.speed / 1000)
-        }))
-      );
-    }, 50);
-    
-    return () => clearInterval(interval);
-  }, [isAnimating, isEmergencyStopping]);
-
-  const handleSpeedChange = (trainId: string, newSpeed: number) => {
-    setTrains(prevTrains =>
-      prevTrains.map(train =>
-        train.id === trainId ? { ...train, speed: newSpeed } : train
-      )
-    );
-  };
 
   const handleSignalClick = (trackId: string, side: "left" | "right") => {
     setSignals(prev => {
@@ -84,15 +60,14 @@ const Index = () => {
     });
   };
 
-  const handleEmergencyStop = async () => {
-    if (isEmergencyStopping) return;
-    
-    setIsEmergencyStopping(true);
+  const handleEmergencyStop = async (trainId: string) => {
+    const train = trains.find(t => t.id === trainId);
+    if (!train) return;
 
     // First notification: Emergency brake initialization
     toast({
       title: "🚨 EMERGENCY STOP ACTIVATED",
-      description: "Emergency brake initialization...",
+      description: `${train.label}: Emergency brake initialization...`,
       variant: "destructive",
     });
 
@@ -100,7 +75,7 @@ const Index = () => {
     setTimeout(() => {
       toast({
         title: "⚠️ BRAKING IN PROGRESS",
-        description: "Slowing vehicle... Speed reducing rapidly.",
+        description: `${train.label}: Slowing down... Speed reducing rapidly.`,
         variant: "destructive",
       });
     }, 2000);
@@ -109,9 +84,10 @@ const Index = () => {
     setTimeout(() => {
       toast({
         title: "✓ VEHICLE STOPPED",
-        description: "All trains have been brought to a complete stop safely.",
+        description: `${train.label} has been brought to a complete stop safely.`,
       });
-      setIsEmergencyStopping(false);
+      setSelectedTrain(null);
+      setShowEmergencyDialog(false);
     }, 4000);
   };
 
@@ -130,64 +106,79 @@ const Index = () => {
           {/* Railway Tracks */}
           <Card className="p-8 bg-card border-border">
             <div className="space-y-6">
-              <RailwayTrack
-                name="TRACK A"
+              <MovingTrack
+                name="UP TRACK"
+                direction="forward"
                 train={trains[0]}
-                signalLeft={signals["track-a"].left}
-                signalRight={signals["track-a"].right}
-                onSignalClick={(side) => handleSignalClick("track-a", side)}
+                signalLeft={signals["track-up"].left}
+                signalRight={signals["track-up"].right}
+                onSignalClick={(side) => handleSignalClick("track-up", side)}
               />
-              <RailwayTrack
-                name="TRACK B"
+              <MovingTrack
+                name="DOWN TRACK"
+                direction="backward"
                 train={trains[1]}
-                signalLeft={signals["track-b"].left}
-                signalRight={signals["track-b"].right}
-                onSignalClick={(side) => handleSignalClick("track-b", side)}
-              />
-              <RailwayTrack
-                name="TRACK C"
-                train={trains[2]}
-                signalLeft={signals["track-c"].left}
-                signalRight={signals["track-c"].right}
-                onSignalClick={(side) => handleSignalClick("track-c", side)}
+                signalLeft={signals["track-down"].left}
+                signalRight={signals["track-down"].right}
+                onSignalClick={(side) => handleSignalClick("track-down", side)}
               />
             </div>
           </Card>
 
           {/* Auto Signal Response */}
           <AutoSignalResponse />
+          
+          {/* Analytics Dashboard */}
+          <AnalyticsDashboard />
         </div>
 
         {/* Right Sidebar - Metrics */}
         <div className="space-y-4">
-          <SpeedDisplay speed={Math.round(trains[0].speed)} maxSpeed={120} />
+          <SpeedDisplay 
+            tracks={[
+              { direction: "UP", speed: trains[0].speed, distance: trains[0].distance },
+              { direction: "DOWN", speed: trains[1].speed, distance: trains[1].distance },
+            ]} 
+          />
           <SignalStatus distance={2} />
-          <TrainControls
-            trains={trains.map(t => ({ 
-              id: t.id, 
-              name: t.label, 
-              speed: t.speed, 
-              color: t.color 
-            }))}
-            isAnimating={isAnimating}
-            onSpeedChange={handleSpeedChange}
-            onToggleAnimation={() => setIsAnimating(!isAnimating)}
-          />
-          <CommunicationPanel
-            trains={[
-              { trainId: 72, distance: "< 3 KM" },
-              { trainId: 36, distance: "< 3 KM" },
-            ]}
-          />
           <Button
-            onClick={handleEmergencyStop}
-            disabled={isEmergencyStopping}
+            onClick={() => setShowEmergencyDialog(true)}
             className="w-full h-16 text-lg font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg"
           >
-            {isEmergencyStopping ? "STOPPING..." : "EMERGENCY STOP"}
+            EMERGENCY STOP
           </Button>
         </div>
       </div>
+
+      {/* Emergency Stop Dialog */}
+      <AlertDialog open={showEmergencyDialog} onOpenChange={setShowEmergencyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Select Train to Stop</AlertDialogTitle>
+            <AlertDialogDescription>
+              Choose which train should execute emergency stop procedure.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3 my-4">
+            {trains.map((train) => (
+              <Button
+                key={train.id}
+                onClick={() => {
+                  setSelectedTrain(train.id);
+                  handleEmergencyStop(train.id);
+                }}
+                className="w-full h-12 text-lg font-semibold"
+                style={{ backgroundColor: train.color }}
+              >
+                {train.label} - {train.speed} km/h
+              </Button>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

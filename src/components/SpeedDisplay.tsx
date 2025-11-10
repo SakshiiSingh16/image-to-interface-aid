@@ -1,39 +1,43 @@
 import { Card } from "./ui/card";
-import { Gauge } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
-interface SpeedDisplayProps {
+interface TrackSpeed {
+  direction: "UP" | "DOWN";
   speed: number;
-  maxSpeed?: number;
+  distance: number;
 }
 
-export const SpeedDisplay = ({ speed, maxSpeed = 120 }: SpeedDisplayProps) => {
-  const speedPercentage = (speed / maxSpeed) * 100;
-  
+interface SpeedDisplayProps {
+  tracks: TrackSpeed[];
+}
+
+export const SpeedDisplay = ({ tracks }: SpeedDisplayProps) => {
   return (
     <Card className="p-6 bg-card border-border">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-muted-foreground tracking-wider">SPEED</h3>
-          <Gauge className="w-4 h-4 text-muted-foreground" />
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-6xl font-bold text-foreground">{speed}</span>
-          <span className="text-2xl text-muted-foreground">km/h</span>
-        </div>
+        <h3 className="text-sm font-medium text-muted-foreground tracking-wider mb-4">TRACK SPEED</h3>
         
-        {/* Speed Indicator Bar */}
-        <div className="space-y-2">
-          <div className="h-3 bg-secondary rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-signal-safe via-accent to-signal-stop rounded-full transition-all duration-500"
-              style={{ width: `${speedPercentage}%` }}
-            />
+        {tracks.map((track, index) => (
+          <div key={index} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg border border-border">
+            <div className="flex items-center gap-3">
+              {track.direction === "UP" ? (
+                <div className="w-8 h-8 rounded-full bg-train-a/20 flex items-center justify-center">
+                  <ArrowUp className="w-5 h-5 text-train-a" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-train-b/20 flex items-center justify-center">
+                  <ArrowDown className="w-5 h-5 text-train-b" />
+                </div>
+              )}
+              <span className="text-lg font-bold text-foreground">{track.direction}</span>
+            </div>
+            
+            <div className="text-right">
+              <div className="text-2xl font-bold text-foreground">{track.speed} km/h</div>
+              <div className="text-sm text-muted-foreground">{track.distance} km away</div>
+            </div>
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>0</span>
-            <span>{maxSpeed} km/h</span>
-          </div>
-        </div>
+        ))}
       </div>
     </Card>
   );
