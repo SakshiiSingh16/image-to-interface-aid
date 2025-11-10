@@ -6,6 +6,7 @@ import { SpeedDisplay } from "@/components/SpeedDisplay";
 import { SignalStatus } from "@/components/SignalStatus";
 import { AutoSignalResponse } from "@/components/AutoSignalResponse";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { CollisionAlert } from "@/components/CollisionAlert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 
@@ -26,6 +27,8 @@ interface SignalState {
 const Index = () => {
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState<string | null>(null);
+  const [collisionRiskUp, setCollisionRiskUp] = useState(false);
+  const [collisionRiskDown, setCollisionRiskDown] = useState(false);
   
   const [trains, setTrains] = useState<TrainState[]>([
     { id: "train-a", label: "UP TRAIN", color: "#00d4ff", position: 50, speed: 72, distance: 3 },
@@ -36,6 +39,8 @@ const Index = () => {
     "track-up": { left: "safe", right: "safe" },
     "track-down": { left: "safe", right: "caution" },
   });
+
+  const isCollisionRisk = collisionRiskUp || collisionRiskDown;
 
 
   const handleSignalClick = (trackId: string, side: "left" | "right") => {
@@ -113,6 +118,7 @@ const Index = () => {
                 signalLeft={signals["track-up"].left}
                 signalRight={signals["track-up"].right}
                 onSignalClick={(side) => handleSignalClick("track-up", side)}
+                onCollisionRisk={setCollisionRiskUp}
               />
               <MovingTrack
                 name="DOWN TRACK"
@@ -121,6 +127,7 @@ const Index = () => {
                 signalLeft={signals["track-down"].left}
                 signalRight={signals["track-down"].right}
                 onSignalClick={(side) => handleSignalClick("track-down", side)}
+                onCollisionRisk={setCollisionRiskDown}
               />
             </div>
           </Card>
@@ -141,6 +148,7 @@ const Index = () => {
             ]} 
           />
           <SignalStatus distance={2} />
+          <CollisionAlert isRisk={isCollisionRisk} />
           <Button
             onClick={() => setShowEmergencyDialog(true)}
             className="w-full h-16 text-lg font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg"
