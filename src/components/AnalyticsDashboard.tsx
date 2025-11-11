@@ -28,25 +28,23 @@ export const AnalyticsDashboard = () => {
       <div className="mt-6 grid grid-cols-2 gap-4">
         {/* Signal Coverage - LEFT */}
         <div className="p-4 bg-secondary/30 rounded-lg border border-border">
-          <div className="flex items-center justify-between text-sm mb-3">
+          <div className="text-sm mb-3">
             <span className="text-muted-foreground font-medium">Signal Coverage</span>
-            <span className="text-foreground font-semibold">100%</span>
           </div>
-          <div className="flex gap-2">
-            <button className="flex-1 h-8 rounded bg-destructive hover:bg-destructive/90 transition-colors" />
-            <button className="flex-1 h-8 rounded bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
+          <div className="flex gap-3 justify-center">
+            <button className="w-8 h-8 rounded-full bg-destructive hover:bg-destructive/90 transition-colors" />
+            <button className="w-8 h-8 rounded-full bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
           </div>
         </div>
 
         {/* Track Module - RIGHT */}
         <div className="p-4 bg-secondary/30 rounded-lg border border-border">
-          <div className="flex items-center justify-between text-sm mb-3">
+          <div className="text-sm mb-3">
             <span className="text-muted-foreground font-medium">Track Module</span>
-            <span className="text-foreground font-semibold">8/8</span>
           </div>
-          <div className="flex gap-2">
-            <button className="flex-1 h-8 rounded bg-destructive hover:bg-destructive/90 transition-colors" />
-            <button className="flex-1 h-8 rounded bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
+          <div className="flex gap-3 justify-center">
+            <button className="w-8 h-8 rounded-full bg-destructive hover:bg-destructive/90 transition-colors" />
+            <button className="w-8 h-8 rounded-full bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
           </div>
         </div>
       </div>
