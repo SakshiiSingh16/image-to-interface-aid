@@ -30,10 +30,6 @@ export const MovingTrack = ({ name, direction, train, signalLeft, signalRight, o
     { id: "approaching-1", position: direction === "forward" ? -20 : 120, color: "#ff3366" },
     { id: "approaching-2", position: direction === "forward" ? -60 : 160, color: "#9333ea" },
   ]);
-  const [trafficSignals, setTrafficSignals] = useState([
-    { id: "signal-1", position: 25 },
-    { id: "signal-2", position: 75 },
-  ]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -54,17 +50,6 @@ export const MovingTrack = ({ name, direction, train, signalLeft, signalRight, o
           newPos = t.position <= -20 ? 120 : t.position - 0.8;
         }
         return { ...t, position: newPos };
-      }));
-
-      // Move traffic signals
-      setTrafficSignals(prev => prev.map(signal => {
-        let newPos;
-        if (direction === "forward") {
-          newPos = signal.position >= 100 ? 0 : signal.position + 0.5;
-        } else {
-          newPos = signal.position <= 0 ? 100 : signal.position - 0.5;
-        }
-        return { ...signal, position: newPos };
       }));
     }, 50);
 
@@ -141,24 +126,6 @@ export const MovingTrack = ({ name, direction, train, signalLeft, signalRight, o
             </div>
           ))}
 
-          {/* Moving Traffic Signals */}
-          {trafficSignals.map(signal => (
-            <div
-              key={signal.id}
-              className="absolute top-1/2 -translate-y-1/2 z-10"
-              style={{ left: `${signal.position}%` }}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-1 h-8 bg-muted-foreground/40" />
-                <div className="flex flex-col gap-0.5 bg-secondary/90 p-1 rounded border border-border">
-                  <div className="w-2 h-2 rounded-full bg-signal-stop/80 border border-signal-stop" />
-                  <div className="w-2 h-2 rounded-full bg-accent/80 border border-accent" />
-                  <div className="w-2 h-2 rounded-full bg-signal-safe/80 border border-signal-safe" />
-                </div>
-              </div>
-            </div>
-          ))}
-          
           {/* Stationary Train (foreground) */}
           <div 
             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-40"

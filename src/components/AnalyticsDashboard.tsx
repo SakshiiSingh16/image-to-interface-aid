@@ -32,7 +32,7 @@ export const AnalyticsDashboard = () => {
             <span className="text-muted-foreground font-medium">Signal Coverage</span>
           </div>
           <div className="flex justify-center">
-            <button className="w-10 h-10 rounded-full bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
+            <button className="w-10 h-10 rounded-full bg-muted/30 border-2 border-muted-foreground/20 hover:bg-muted/50 transition-colors" />
           </div>
         </div>
 
@@ -42,7 +42,7 @@ export const AnalyticsDashboard = () => {
             <span className="text-muted-foreground font-medium">Track Module</span>
           </div>
           <div className="flex justify-center">
-            <button className="w-10 h-10 rounded-full bg-signal-safe hover:bg-signal-safe/90 transition-colors" />
+            <button className="w-10 h-10 rounded-full bg-muted/30 border-2 border-muted-foreground/20 hover:bg-muted/50 transition-colors" />
           </div>
         </div>
       </div>
