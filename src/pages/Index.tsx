@@ -144,7 +144,7 @@ const Index = () => {
         </div>
 
         {/* Right Sidebar - Metrics */}
-        <div className="flex flex-col gap-2 overflow-y-auto">
+        <div className="flex flex-col gap-1.5 overflow-hidden">
           <SpeedDisplay 
             tracks={[
               { direction: "UP", speed: trains[0].speed, distance: trains[0].distance },
@@ -156,7 +156,7 @@ const Index = () => {
           <CollisionAlert isRisk={collisionRiskDown} trainLabel="TRAIN DOWN" />
           <Button
             onClick={() => setShowEmergencyDialog(true)}
-            className="w-full h-12 text-base font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0"
+            className="w-full h-9 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0"
           >
             EMERGENCY STOP
           </Button>
