@@ -82,10 +82,28 @@ export default {
             height: "0",
           },
         },
+        "track-forward": {
+          "0%": {
+            transform: "translateX(0)",
+          },
+          "100%": {
+            transform: "translateX(-50%)",
+          },
+        },
+        "track-backward": {
+          "0%": {
+            transform: "translateX(-50%)",
+          },
+          "100%": {
+            transform: "translateX(0)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "track-forward": "track-forward 40s linear infinite",
+        "track-backward": "track-backward 40s linear infinite",
       },
     },
   },
