@@ -28,7 +28,7 @@ interface SignalState {
 const Index = () => {
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState<string | null>(null);
-  
+
   // Train data - THIS WILL BE UPDATED FROM HARDWARE CONNECTION
   // Distance is in kilometers (km)
   // When hardware is connected, update these values with real-time data:
@@ -47,7 +47,7 @@ const Index = () => {
     // Hardware will update this based on real-time position changes
     return trainA.distance <= 3 ? "Approaching" : "Moving Away";
   };
-  
+
   const [signals, setSignals] = useState<Record<string, SignalState>>({
     "track-up": { left: "safe", right: "safe" },
     "track-down": { left: "safe", right: "safe" },
@@ -65,10 +65,10 @@ const Index = () => {
   const handleSignalClick = (trackId: string, side: "left" | "right") => {
     setSignals(prev => {
       const currentSignal = prev[trackId][side];
-      const nextSignal = 
+      const nextSignal =
         currentSignal === "safe" ? "caution" :
-        currentSignal === "caution" ? "danger" : "safe";
-      
+          currentSignal === "caution" ? "danger" : "safe";
+
       return {
         ...prev,
         [trackId]: {
@@ -77,7 +77,7 @@ const Index = () => {
         }
       };
     });
-    
+
     toast({
       title: "Signal Updated",
       description: `${trackId.toUpperCase()} ${side} signal changed`,
@@ -131,26 +131,21 @@ const Index = () => {
           <Card className="p-4 bg-card border-border flex-shrink-0">
             <div className="space-y-3">
               <MovingTrack
-                name="UP TRACK"
+                name="MAIN TRACK"
                 direction="forward"
-                mainTrain={trains[0]}
-                backTrain={{ ...trains[0], position: Math.max(0, trains[0].position - 15), label: "UP-BACK" }}
-                frontTrain={{ ...trains[0], position: Math.min(100, trains[0].position + 15), label: "UP-FRONT" }}
+                mainTrain={{ ...trains[0], position: 50 }} // Center the main train
+                nearbyTrains={[
+                  // Front trains (ahead)
+                  { ...trains[0], id: "front-1", label: "FRONT-1", position: 60, color: "#22c55e" }, // +1km (10%)
+                  { ...trains[0], id: "front-2", label: "FRONT-2", position: 80, color: "#22c55e" }, // +3km (30%)
+                  // Back trains (behind)
+                  { ...trains[0], id: "back-1", label: "BACK-1", position: 40, color: "#ef4444" },   // -1km (10%)
+                  { ...trains[0], id: "back-2", label: "BACK-2", position: 10, color: "#ef4444" },   // -4km (40%)
+                ]}
                 status={getTrainStatus(trains[0], trains[1])}
                 signalLeft={signals["track-up"].left}
                 signalRight={signals["track-up"].right}
                 onSignalClick={(side) => handleSignalClick("track-up", side)}
-              />
-              <MovingTrack
-                name="DOWN TRACK"
-                direction="backward"
-                mainTrain={trains[1]}
-                backTrain={{ ...trains[1], position: Math.min(100, trains[1].position + 15), label: "DOWN-BACK" }}
-                frontTrain={{ ...trains[1], position: Math.max(0, trains[1].position - 15), label: "DOWN-FRONT" }}
-                status={getTrainStatus(trains[1], trains[0])}
-                signalLeft={signals["track-down"].left}
-                signalRight={signals["track-down"].right}
-                onSignalClick={(side) => handleSignalClick("track-down", side)}
               />
             </div>
           </Card>
@@ -163,11 +158,11 @@ const Index = () => {
 
         {/* Right Sidebar - Metrics */}
         <div className="flex flex-col gap-1.5 overflow-hidden">
-          <SpeedDisplay 
+          <SpeedDisplay
             tracks={[
               { direction: "UP", speed: trains[0].speed, distance: trains[0].distance },
               { direction: "DOWN", speed: trains[1].speed, distance: trains[1].distance },
-            ]} 
+            ]}
           />
           <WeatherTime />
           <SignalStatus distance={trains[0].distance < trains[1].distance ? trains[0].distance : trains[1].distance} />

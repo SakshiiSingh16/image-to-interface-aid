@@ -12,17 +12,16 @@ interface MovingTrackProps {
   name: string;
   direction: "forward" | "backward";
   mainTrain: Train;
-  frontTrain: Train;
-  backTrain: Train;
+  nearbyTrains: Train[];
   status: "Approaching" | "Moving Away";
   signalLeft: "safe" | "caution" | "danger";
   signalRight: "safe" | "caution" | "danger";
   onSignalClick?: (side: "left" | "right") => void;
 }
 
-export const MovingTrack = ({ name, direction, mainTrain, frontTrain, backTrain, status, signalLeft, signalRight, onSignalClick }: MovingTrackProps) => {
+export const MovingTrack = ({ name, direction, mainTrain, nearbyTrains, status, signalLeft, signalRight, onSignalClick }: MovingTrackProps) => {
   const trackLetter = name.includes("UP") ? "A" : name.includes("DOWN") ? "B" : "C";
-  
+
   // Static background elements (pillars, stations, traffic signals) - no movement
   const backgroundElements = [
     { id: 1, position: 10, type: "pillar" },
@@ -50,7 +49,7 @@ export const MovingTrack = ({ name, direction, mainTrain, frontTrain, backTrain,
           <div className="relative h-3 w-full">
             {/* Rail track - continuous line */}
             <div className="absolute h-3 bg-track rounded-full w-full" />
-            
+
             {/* Static Background Elements */}
             {backgroundElements.map(element => (
               <div
@@ -87,25 +86,32 @@ export const MovingTrack = ({ name, direction, mainTrain, frontTrain, backTrain,
           </div>
         </div>
 
-        {/* Back Train (5km behind) */}
-        <div 
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-30 opacity-60"
-          style={{ left: `${backTrain.position}%` }}
-        >
-          <div className="relative">
-            <div 
-              className="w-10 h-9 rounded-lg flex items-center justify-center shadow-lg border border-white/20"
-              style={{ backgroundColor: backTrain.color }}
-            >
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2c-4 0-8 0.5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v0.5h2l2-2h4l2 2h2v-0.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-0.83 0-1.5-0.67-1.5-1.5S6.67 14 7.5 14s1.5 0.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-0.83 0-1.5-0.67-1.5-1.5s0.67-1.5 1.5-1.5 1.5 0.67 1.5 1.5-0.67 1.5-1.5 1.5z"/>
-              </svg>
+        {/* Nearby Trains */}
+        {nearbyTrains.map((train) => (
+          <div
+            key={train.id}
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-30 opacity-60"
+            style={{ left: `${train.position}%` }}
+          >
+            <div className="relative">
+              <div
+                className="w-10 h-9 rounded-lg flex items-center justify-center shadow-lg border border-white/20"
+                style={{ backgroundColor: train.color }}
+              >
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2c-4 0-8 0.5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v0.5h2l2-2h4l2 2h2v-0.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-0.83 0-1.5-0.67-1.5-1.5S6.67 14 7.5 14s1.5 0.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-0.83 0-1.5-0.67-1.5-1.5s0.67-1.5 1.5-1.5 1.5 0.67 1.5 1.5-0.67 1.5-1.5 1.5z" />
+                </svg>
+              </div>
+              {/* Distance Label */}
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-muted-foreground whitespace-nowrap bg-background/80 px-1 rounded">
+                {Math.abs(train.position - mainTrain.position) > 0 ? `${Math.abs((train.position - mainTrain.position) / 10).toFixed(1)} km` : ''}
+              </div>
             </div>
           </div>
-        </div>
+        ))}
 
         {/* Main Train (Locopilot) */}
-        <div 
+        <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-40"
           style={{ left: `${mainTrain.position}%` }}
         >
@@ -116,34 +122,17 @@ export const MovingTrack = ({ name, direction, mainTrain, frontTrain, backTrain,
             </div>
           </div>
           <div className="relative">
-            <div 
+            <div
               className="w-16 h-14 rounded-lg flex items-center justify-center shadow-2xl border-2 border-white/20"
               style={{ backgroundColor: mainTrain.color }}
             >
               <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2c-4 0-8 0.5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v0.5h2l2-2h4l2 2h2v-0.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-0.83 0-1.5-0.67-1.5-1.5S6.67 14 7.5 14s1.5 0.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-0.83 0-1.5-0.67-1.5-1.5s0.67-1.5 1.5-1.5 1.5 0.67 1.5 1.5-0.67 1.5-1.5 1.5z"/>
+                <path d="M12 2c-4 0-8 0.5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v0.5h2l2-2h4l2 2h2v-0.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-0.83 0-1.5-0.67-1.5-1.5S6.67 14 7.5 14s1.5 0.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-0.83 0-1.5-0.67-1.5-1.5s0.67-1.5 1.5-1.5 1.5 0.67 1.5 1.5-0.67 1.5-1.5 1.5z" />
               </svg>
             </div>
           </div>
           <div className="text-[11px] font-semibold text-foreground bg-background/80 px-2 py-0.5 rounded border border-border">
             {status}
-          </div>
-        </div>
-
-        {/* Front Train (5km ahead) */}
-        <div 
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-30 opacity-60"
-          style={{ left: `${frontTrain.position}%` }}
-        >
-          <div className="relative">
-            <div 
-              className="w-10 h-9 rounded-lg flex items-center justify-center shadow-lg border border-white/20"
-              style={{ backgroundColor: frontTrain.color }}
-            >
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2c-4 0-8 0.5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v0.5h2l2-2h4l2 2h2v-0.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-0.83 0-1.5-0.67-1.5-1.5S6.67 14 7.5 14s1.5 0.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-0.83 0-1.5-0.67-1.5-1.5s0.67-1.5 1.5-1.5 1.5 0.67 1.5 1.5-0.67 1.5-1.5 1.5z"/>
-              </svg>
-            </div>
           </div>
         </div>
       </div>
