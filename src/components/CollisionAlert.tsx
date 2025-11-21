@@ -27,24 +27,6 @@ export const CollisionAlert = ({ isRisk, trainLabel }: CollisionAlertProps) => {
           "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
           isRisk ? "bg-signal-stop animate-pulse" : "bg-signal-safe"
         )}>
-          <AlertTriangle className={cn(
-            "w-3 h-3",
-            isRisk ? "text-white animate-pulse" : "text-background"
-          )} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className={cn(
-            "text-xs font-bold tracking-wide",
-            isRisk ? "text-signal-stop" : "text-signal-safe"
-          )}>
-            {isRisk ? "⚠️ RISK (<1km)" : "✓ ALL CLEAR"}
-          </div>
-          <div className="text-[9px] text-muted-foreground truncate">
-            {isRisk
-              ? "Emergency alert"
-              : "Safe distance"}
-          </div>
         </div>
       </div>
     </Card>

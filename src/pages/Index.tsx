@@ -209,6 +209,11 @@ const Index = () => {
   const warningCount = isCollisionRisk ? 1 : 0;
   const systemStatus = isCollisionRisk ? "Warning" : "Normal";
 
+  // Next Signal Distance Calculation
+  // Assuming signals are at 20, 40, 60, 80. Main train is at 50. Next signal is at 60.
+  // Distance = (Next Signal Position - Main Train Position) / 10 (assuming 10% = 1km scale)
+  const nextSignalDistance = Math.max(0, (60 - 50) / 10);
+
 
   const handleSignalClick = (trackId: string, side: "left" | "right") => {
     const apiUrl = import.meta.env.VITE_BACKEND_API || "http://localhost:8080";
@@ -350,16 +355,10 @@ const Index = () => {
             />
             <div className="mt-1 mb-1">
               <SignalStatus
-                distance={trains[0].distance < trains[1].distance ? trains[0].distance : trains[1].distance}
+                distance={nextSignalDistance}
                 status={signals["track-up"].left}
               />
             </div>
-            <Button
-              onClick={() => setShowEmergencyDialog(true)}
-              className="w-full h-9 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0"
-            >
-              EMERGENCY STOP
-            </Button>
           </div>
         </div>
 
@@ -403,6 +402,12 @@ const Index = () => {
               </div>
             </div>
           </Card>
+          <Button
+            onClick={() => setShowEmergencyDialog(true)}
+            className="w-full h-9 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0 mt-auto"
+          >
+            EMERGENCY STOP
+          </Button>
         </div>
       </div>
 
