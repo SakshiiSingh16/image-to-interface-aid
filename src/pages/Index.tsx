@@ -201,8 +201,7 @@ const Index = () => {
   const COLLISION_THRESHOLD_KM = 1;
   const collisionRiskUp = trains[0].distance <= COLLISION_THRESHOLD_KM;
   const collisionRiskDown = trains[1].distance <= COLLISION_THRESHOLD_KM;
-  const collisionRiskUp = trains[0].distance <= COLLISION_THRESHOLD_KM;
-  const collisionRiskDown = trains[1].distance <= COLLISION_THRESHOLD_KM;
+
   const isCollisionRisk = collisionRiskUp || collisionRiskDown;
 
   // Dashboard Metrics Calculation
