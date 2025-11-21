@@ -48,6 +48,22 @@ let signals = {
 };
 let emergencyStop = null; // { trainId, timestamp }
 
+let previousTrain = {
+    id: "12675",
+    name: "Kovai Express",
+    number: "12675",
+    status: "Departed",
+    eta: "10:30 AM"
+};
+
+let nextTrain = {
+    id: "12679",
+    name: "Intercity Express",
+    number: "12679",
+    status: "On Time",
+    eta: "11:15 AM"
+};
+
 // Haversine Distance Calculation (in km)
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     var R = 6371; // Radius of the earth in km
@@ -113,7 +129,9 @@ wss.on('connection', (ws) => {
         lng: currentGPS.lng,
         nearestStation,
         signals,
-        emergencyStop
+        emergencyStop,
+        previousTrain,
+        nextTrain
     }));
 
     ws.on('close', () => {
@@ -200,7 +218,9 @@ app.get('/live', (req, res) => {
         currentGPS,
         nearestStation,
         signals,
-        emergencyStop
+        emergencyStop,
+        previousTrain,
+        nextTrain
     });
 });
 

@@ -26,9 +26,19 @@ interface SignalState {
   right: "safe" | "caution" | "danger";
 }
 
+interface TrainDetails {
+  id: string;
+  name: string;
+  number: string;
+  status: string;
+  eta: string;
+}
+
 const Index = () => {
   const [showEmergencyDialog, setShowEmergencyDialog] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState<string | null>(null);
+  const [previousTrain, setPreviousTrain] = useState<TrainDetails | null>(null);
+  const [nextTrain, setNextTrain] = useState<TrainDetails | null>(null);
 
   // Train data - THIS WILL BE UPDATED FROM HARDWARE CONNECTION
   // Distance is in kilometers (km)
@@ -81,6 +91,10 @@ const Index = () => {
           setSignals(data.signals);
         }
 
+        // Update previous + next train
+        if (data.previousTrain) setPreviousTrain(data.previousTrain);
+        if (data.nextTrain) setNextTrain(data.nextTrain);
+
       } catch (error) {
         console.error("Error fetching live data:", error);
       }
@@ -131,6 +145,10 @@ const Index = () => {
         if (data.type === 'SIGNAL_UPDATE' && data.signals) {
           setSignals(data.signals);
         }
+
+        // Update previous + next train
+        if (data.previousTrain) setPreviousTrain(data.previousTrain);
+        if (data.nextTrain) setNextTrain(data.nextTrain);
 
         // Handle Emergency Stop
         if (data.type === 'EMERGENCY_STOP') {
@@ -348,6 +366,38 @@ const Index = () => {
           <WeatherTime locationName={stations[0].name} />
           <CollisionAlert isRisk={collisionRiskUp} trainLabel="MAIN TRAIN" />
           <SignalStatus distance={trains[0].distance < trains[1].distance ? trains[0].distance : trains[1].distance} />
+
+          {/* Previous & Next Train Details */}
+          <Card className="p-3 bg-card border-border space-y-2">
+            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Schedule Info</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-muted/50 p-2 rounded-md">
+                <p className="text-xs text-muted-foreground">Previous Train</p>
+                {previousTrain ? (
+                  <>
+                    <p className="font-bold text-sm truncate">{previousTrain.name}</p>
+                    <p className="text-xs font-mono">{previousTrain.number}</p>
+                    <p className="text-xs text-green-500">{previousTrain.status}</p>
+                  </>
+                ) : (
+                  <p className="text-xs italic">Loading...</p>
+                )}
+              </div>
+              <div className="bg-muted/50 p-2 rounded-md">
+                <p className="text-xs text-muted-foreground">Next Train</p>
+                {nextTrain ? (
+                  <>
+                    <p className="font-bold text-sm truncate">{nextTrain.name}</p>
+                    <p className="text-xs font-mono">{nextTrain.number}</p>
+                    <p className="text-xs text-blue-500">ETA: {nextTrain.eta}</p>
+                  </>
+                ) : (
+                  <p className="text-xs italic">Loading...</p>
+                )}
+              </div>
+            </div>
+          </Card>
+
           <Button
             onClick={() => setShowEmergencyDialog(true)}
             className="w-full h-9 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0"
