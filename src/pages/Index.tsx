@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MovingTrack } from "@/components/MovingTrack";
@@ -40,6 +40,52 @@ const Index = () => {
     { id: "train-a", label: "UP TRAIN (Locopilot)", color: "#00d4ff", position: 30, speed: 0, distance: 5 },
     { id: "train-b", label: "DOWN TRAIN", color: "#ff9500", position: 70, speed: 0, distance: 5 },
   ]);
+
+  // Mock Hardware Input Simulation
+  // In a real app, this would be a WebSocket connection or API polling
+  const [currentGPS, setCurrentGPS] = useState({
+    lat: stations[0].coordinates.lat,
+    lng: stations[0].coordinates.lng
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTrains(prevTrains => {
+        return prevTrains.map(train => {
+          // Simulate movement for Main Train
+          if (train.id === "train-a") {
+            // Simple oscillation for demo purposes
+            const time = Date.now() / 2000;
+            const basePosition = 50;
+            const movement = Math.sin(time) * 2; // Move slightly
+
+            // Calculate new GPS based on position (Interpolation between CBE and CBF)
+            // Assuming position 50 is CBE, and we are moving towards CBF
+            const progress = (Math.sin(time) + 1) / 2; // 0 to 1
+            const startLat = stations[0].coordinates.lat;
+            const endLat = stations[1].coordinates.lat;
+            const startLng = stations[0].coordinates.lng;
+            const endLng = stations[1].coordinates.lng;
+
+            const newLat = startLat + (endLat - startLat) * progress;
+            const newLng = startLng + (endLng - startLng) * progress;
+
+            // Update the separate GPS state to mimic hardware input
+            setCurrentGPS({ lat: newLat, lng: newLng });
+
+            return {
+              ...train,
+              position: basePosition + movement,
+              speed: 80 + Math.random() * 10 - 5, // Fluctuate speed
+            };
+          }
+          return train;
+        });
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Calculate if trains are approaching or moving away
   // When hardware updates positions, this will show real-time status
@@ -137,8 +183,8 @@ const Index = () => {
                 mainTrain={{
                   ...trains[0],
                   position: 50,
-                  latitude: stations[0].coordinates.lat,
-                  longitude: stations[0].coordinates.lng,
+                  latitude: currentGPS.lat,
+                  longitude: currentGPS.lng,
                   stationName: stations[0].name
                 }} // Center the main train
                 nearbyTrains={[
