@@ -353,34 +353,37 @@ const Index = () => {
           />
           <WeatherTime locationName={stations[0].name} />
           <CollisionAlert isRisk={collisionRiskUp} trainLabel="MAIN TRAIN" />
-          <SignalStatus distance={trains[0].distance < trains[1].distance ? trains[0].distance : trains[1].distance} />
+          <CollisionAlert isRisk={collisionRiskUp} trainLabel="MAIN TRAIN" />
+          <SignalStatus
+            distance={trains[0].distance < trains[1].distance ? trains[0].distance : trains[1].distance}
+            status={signals["track-up"].left}
+          />
 
           {/* Previous & Next Train Details */}
-          <Card className="p-2 bg-card border-border space-y-2">
-            <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Schedule Info</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-muted/50 p-2 rounded-md">
-                <p className="text-xs text-muted-foreground">Previous Train</p>
+          <Card className="p-1.5 bg-card border-border space-y-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="bg-muted/50 p-1.5 rounded-md">
+                <p className="text-[10px] text-muted-foreground mb-0.5">Previous Train</p>
                 {previousTrain ? (
                   <>
-                    <p className="font-bold text-sm truncate">{previousTrain.name}</p>
-                    <p className="text-xs font-mono">{previousTrain.number}</p>
-                    <p className="text-xs text-green-500">{previousTrain.status}</p>
+                    <p className="font-bold text-xs truncate">{previousTrain.name}</p>
+                    <p className="text-[10px] font-mono leading-none opacity-80">{previousTrain.number}</p>
+                    <p className="text-[10px] text-green-500 font-medium mt-0.5">{previousTrain.status}</p>
                   </>
                 ) : (
-                  <p className="text-xs italic">Loading...</p>
+                  <p className="text-[10px] italic">Loading...</p>
                 )}
               </div>
-              <div className="bg-muted/50 p-2 rounded-md">
-                <p className="text-xs text-muted-foreground">Next Train</p>
+              <div className="bg-muted/50 p-1.5 rounded-md">
+                <p className="text-[10px] text-muted-foreground mb-0.5">Next Train</p>
                 {nextTrain ? (
                   <>
-                    <p className="font-bold text-sm truncate">{nextTrain.name}</p>
-                    <p className="text-xs font-mono">{nextTrain.number}</p>
-                    <p className="text-xs text-blue-500">ETA: {nextTrain.eta}</p>
+                    <p className="font-bold text-xs truncate">{nextTrain.name}</p>
+                    <p className="text-[10px] font-mono leading-none opacity-80">{nextTrain.number}</p>
+                    <p className="text-[10px] text-blue-500 font-medium mt-0.5">ETA: {nextTrain.eta}</p>
                   </>
                 ) : (
-                  <p className="text-xs italic">Loading...</p>
+                  <p className="text-[10px] italic">Loading...</p>
                 )}
               </div>
             </div>
