@@ -287,15 +287,25 @@ const Index = () => {
   return (
     <div className="h-screen w-screen bg-background text-foreground overflow-hidden flex flex-col p-2">
       {/* Header */}
-      <div className="mb-1 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Train className="w-6 h-6 text-primary" />
+      <div className="mb-2 flex-shrink-0 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          SMART RAIL-TRACKING AND ANTI-COLLISION SYSTEM
+        </h1>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-2 flex-shrink-0">
+        <Card className="p-2 bg-card border-border">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-sm font-semibold text-muted-foreground">QUICK ACTIONS</h2>
+            <Button
+              onClick={() => setShowEmergencyDialog(true)}
+              className="h-9 px-6 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg"
+            >
+              EMERGENCY STOP
+            </Button>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            SMART RAIL-TRACKING AND ANTI-COLLISION SYSTEM
-          </h1>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 overflow-hidden min-h-0">
@@ -407,12 +417,6 @@ const Index = () => {
               </div>
             </div>
           </Card>
-          <Button
-            onClick={() => setShowEmergencyDialog(true)}
-            className="w-full h-9 text-sm font-bold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg flex-shrink-0 mt-auto"
-          >
-            EMERGENCY STOP
-          </Button>
         </div >
       </div >
 
