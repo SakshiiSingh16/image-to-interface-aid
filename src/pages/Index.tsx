@@ -286,8 +286,8 @@ const Index = () => {
         {/* Main Track Visualization */}
         <div className="lg:col-span-2 flex flex-col gap-1 overflow-hidden min-h-0">
           {/* Railway Tracks */}
-          <Card className="p-2 bg-card border-border flex-1 overflow-hidden flex flex-col">
-            <div className="space-y-3 flex-1 h-full">
+          <Card className="p-2 bg-card border-border flex-shrink-0 overflow-hidden flex flex-col">
+            <div className="space-y-3 flex-1">
               <MovingTrack
                 name="MAIN TRACK"
                 direction="forward"
