@@ -4,13 +4,13 @@ import { Card } from "@/components/ui/card";
 import { MovingTrack } from "@/components/MovingTrack";
 import { SpeedDisplay } from "@/components/SpeedDisplay";
 import { SignalStatus } from "@/components/SignalStatus";
-import { Train } from "lucide-react";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { CollisionAlert } from "@/components/CollisionAlert";
 import { WeatherTime } from "@/components/WeatherTime";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { stations } from "@/data/stations";
+import { TRAIN_DB } from "../train-database";
 
 interface TrainState {
   id: string;
@@ -19,6 +19,10 @@ interface TrainState {
   position: number;
   speed: number;
   distance: number;
+  direction?: "UP" | "DOWN";
+  latitude?: number;
+  longitude?: number;
+  stationName?: string;
 }
 
 interface SignalState {
@@ -40,34 +44,75 @@ const Index = () => {
   const [previousTrain, setPreviousTrain] = useState<TrainDetails | null>(null);
   const [nextTrain, setNextTrain] = useState<TrainDetails | null>(null);
 
-  // Train data - THIS WILL BE UPDATED FROM HARDWARE CONNECTION
-  // Distance is in kilometers (km)
-  // When hardware is connected, update these values with real-time data:
-  // - position: train position on track (0-100%)
-  // - speed: train speed in km/h
-  // - distance: distance between trains in kilometers
+  // Load data from TRAIN_DB
+  // We will use the first two trains to demonstrate "facing each other"
+  const train1Data = TRAIN_DB[0];
+  const train2Data = TRAIN_DB[1];
+
+  // Calculate positions based on location
+  // We define a window to make them visible on the track (0-100%)
+  // Let's assume a 10km window centered on the midpoint of the two trains
+  const loc1 = train1Data.location;
+  const loc2 = train2Data.location;
+  const midPoint = (loc1 + loc2) / 2;
+  const windowSize = 10; // 10km window
+  const startLoc = midPoint - windowSize / 2;
+
+  const getPosition = (loc: number) => {
+    const pos = ((loc - startLoc) / windowSize) * 100;
+    return Math.max(5, Math.min(95, pos)); // Clamp between 5% and 95%
+  };
+
+  const pos1 = getPosition(loc1);
+  const pos2 = getPosition(loc2);
+
+  // Determine direction to face each other
+  // Left train (smaller position) should face Right (DOWN)
+  // Right train (larger position) should face Left (UP)
+  const dir1 = pos1 < pos2 ? "DOWN" : "UP";
+  const dir2 = pos2 < pos1 ? "DOWN" : "UP";
+
   const [trains, setTrains] = useState<TrainState[]>([
-    { id: "train-a", label: "UP TRAIN (Locopilot)", color: "#00d4ff", position: 30, speed: 0, distance: 5 },
-    { id: "train-b", label: "DOWN TRAIN", color: "#ff9500", position: 70, speed: 0, distance: 5 },
+    {
+      id: train1Data.trainNumber,
+      label: train1Data.trainName,
+      color: "#00d4ff",
+      position: pos1,
+      speed: 60,
+      distance: 0,
+      direction: dir1,
+      stationName: train1Data.stationName,
+      latitude: 12.9716, // Mock coords
+      longitude: 77.5946
+    },
+    {
+      id: train2Data.trainNumber,
+      label: train2Data.trainName,
+      color: "#ff9500",
+      position: pos2,
+      speed: 55,
+      distance: Math.abs(loc1 - loc2),
+      direction: dir2,
+      stationName: train2Data.stationName,
+      latitude: 13.0827, // Mock coords
+      longitude: 80.2707
+    },
   ]);
 
   // Mock Hardware Input Simulation
-  // In a real app, this would be a WebSocket connection or API polling
   const [currentGPS, setCurrentGPS] = useState({
     lat: stations[0].coordinates.lat,
     lng: stations[0].coordinates.lng
   });
 
-  // Polling for live backend data
+  // Polling for live backend data (Optional/Background)
   useEffect(() => {
     const API_URL = import.meta.env.VITE_BACKEND_API || "http://localhost:8080";
 
     const fetchLiveData = async () => {
       try {
         const response = await fetch(`${API_URL}/live`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) return; // Silent fail if backend not running
         const data = await response.json();
 
         // Update GPS
@@ -75,82 +120,41 @@ const Index = () => {
           setCurrentGPS({ lat: data.currentGPS.lat, lng: data.currentGPS.lng });
         }
 
-        // Update train info
-        if (data.currentGPS && data.nearestStation) {
-          setTrains(prev => prev.map(train => ({
-            ...train,
-            latitude: data.currentGPS.lat,
-            longitude: data.currentGPS.lng,
-            stationName: data.nearestStation.name,
-            distance: data.nearestStation.distance
-          })));
-        }
-
-        // Update signals
+        // We are NOT updating trains from API here to preserve the TRAIN_DB demo
+        // But we can update signals/other info
         if (data.signals) {
           setSignals(data.signals);
         }
-
-        // Update previous + next train
         if (data.previousTrain) setPreviousTrain(data.previousTrain);
         if (data.nextTrain) setNextTrain(data.nextTrain);
 
       } catch (error) {
-        console.error("Error fetching live data:", error);
+        // console.error("Error fetching live data:", error);
       }
     };
 
-    // Initial fetch
     fetchLiveData();
-
     const interval = setInterval(fetchLiveData, 1000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Create WebSocket connection
     const wsUrl = import.meta.env.VITE_BACKEND_WS || "ws://localhost:8080";
     const ws = new WebSocket(wsUrl);
 
-    // When WebSocket opens
-    ws.onopen = () => {
-      console.log("WebSocket connected 👍");
-    };
+    ws.onopen = () => console.log("WebSocket connected 👍");
 
-    // When message received from backend
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-
-        // Update current GPS position (for map)
         if (data.lat && data.lng) {
-          setCurrentGPS({
-            lat: data.lat,
-            lng: data.lng,
-          });
-
-          // Update train location + nearest station info
-          setTrains(prev =>
-            prev.map((train) => ({
-              ...train,
-              latitude: data.lat,
-              longitude: data.lng,
-              stationName: data.nearestStation?.name || "Unknown",
-              distance: data.nearestStation?.distance || 0,
-            }))
-          );
+          setCurrentGPS({ lat: data.lat, lng: data.lng });
         }
-
-        // Handle Signal Updates
         if (data.type === 'SIGNAL_UPDATE' && data.signals) {
           setSignals(data.signals);
         }
-
-        // Update previous + next train
         if (data.previousTrain) setPreviousTrain(data.previousTrain);
         if (data.nextTrain) setNextTrain(data.nextTrain);
-
-        // Handle Emergency Stop
         if (data.type === 'EMERGENCY_STOP') {
           toast({
             title: "🚨 EMERGENCY STOP RECEIVED",
@@ -158,36 +162,19 @@ const Index = () => {
             variant: "destructive",
           });
         }
-
-        console.log("Received:", data);
       } catch (err) {
         console.error("WebSocket parse error:", err);
       }
     };
 
-    // When WebSocket closes
-    ws.onclose = () => {
-      console.log("WebSocket disconnected ❌");
-    };
-
-    // On error
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
-
-    // Cleanup on unmount
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
 
 
   // Calculate if trains are approaching or moving away
-  // When hardware updates positions, this will show real-time status
   const getTrainStatus = (trainA: TrainState, trainB: TrainState): "Approaching" | "Moving Away" => {
-    // If distance is decreasing, trains are approaching
-    // Hardware will update this based on real-time position changes
-    return trainA.distance <= 3 ? "Approaching" : "Moving Away";
+    // Since they are facing each other, they are approaching
+    return "Approaching";
   };
 
   const [signals, setSignals] = useState<Record<string, SignalState>>({
@@ -196,15 +183,8 @@ const Index = () => {
   });
 
   // COLLISION DETECTION LOGIC
-  // Alert triggers when trains are within 1 km of each other
-  // Calculate actual distance between trains based on their positions
   const COLLISION_THRESHOLD_KM = 1;
-
-  // Calculate distance between train positions (position is 0-100, representing track percentage)
-  // Assuming 10% = 1km scale, so distance in km = |position difference| / 10
-  const distanceBetweenTrains = Math.abs(trains[0].position - trains[1].position) / 10;
-
-  // Only trigger collision risk if trains are actually close to each other
+  const distanceBetweenTrains = Math.abs(trains[0].distance); // Already calculated in state
   const isCollisionRisk = distanceBetweenTrains <= COLLISION_THRESHOLD_KM;
 
   // Dashboard Metrics Calculation
@@ -213,8 +193,6 @@ const Index = () => {
   const systemStatus = isCollisionRisk ? "Warning" : "Normal";
 
   // Next Signal Distance Calculation
-  // Assuming signals are at 20, 40, 60, 80. Main train is at 50. Next signal is at 60.
-  // Distance = (Next Signal Position - Main Train Position) / 10 (assuming 10% = 1km scale)
   const nextSignalDistance = Math.max(0, (60 - 50) / 10);
 
 
@@ -227,7 +205,6 @@ const Index = () => {
         currentSignal === "safe" ? "caution" :
           currentSignal === "caution" ? "danger" : "safe";
 
-      // API Call
       fetch(`${apiUrl}/update-signal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -260,14 +237,12 @@ const Index = () => {
       body: JSON.stringify({ trainId })
     }).catch(err => console.error("Failed to trigger emergency stop:", err));
 
-    // First notification: Emergency brake initialization
     toast({
       title: "🚨 EMERGENCY STOP ACTIVATED",
       description: `${train.label}: Emergency brake initialization...`,
       variant: "destructive",
     });
 
-    // Second notification after 2 seconds: Slowing vehicle
     setTimeout(() => {
       toast({
         title: "⚠️ BRAKING IN PROGRESS",
@@ -276,7 +251,6 @@ const Index = () => {
       });
     }, 2000);
 
-    // Final notification after 4 seconds: Vehicle stopped
     setTimeout(() => {
       toast({
         title: "✓ VEHICLE STOPPED",
@@ -307,38 +281,13 @@ const Index = () => {
                 direction="forward"
                 mainTrain={{
                   ...trains[0],
-                  position: 50,
-                  latitude: currentGPS.lat,
-                  longitude: currentGPS.lng,
-                  stationName: stations[0].name,
-                  direction: "UP"
-                }} // Center the main train
+                  // Ensure main train uses its calculated position and direction
+                }}
                 nearbyTrains={[
-                  // Front trains (ahead) - DEPARTING
                   {
-                    ...trains[0],
-                    id: "front-1",
-                    label: "DEPARTING",
-                    position: 60,
-                    color: "#22c55e",
-                    latitude: stations[1].coordinates.lat,
-                    longitude: stations[1].coordinates.lng,
-                    stationName: stations[1].name,
-                    direction: "DOWN"
-                  }, // +1km (10%)
-
-                  // Back trains (behind) - APPROACHING
-                  {
-                    ...trains[0],
-                    id: "back-2",
-                    label: "APPROACHING",
-                    position: 10,
-                    color: "#ef4444",
-                    latitude: 10.950, // Hypothetical further back
-                    longitude: 76.900,
-                    stationName: "Approaching PTJ",
-                    direction: "UP"
-                  },   // -5km (40%)
+                    ...trains[1],
+                    // Ensure nearby train uses its calculated position and direction
+                  }
                 ]}
                 status={getTrainStatus(trains[0], trains[1])}
                 signalLeft={signals["track-up"].left}
@@ -351,7 +300,7 @@ const Index = () => {
           {/* Analytics Dashboard */}
           < div className="flex-shrink-0 overflow-hidden min-h-0" >
             <AnalyticsDashboard
-              activeTrains={3}
+              activeTrains={2}
               avgSpeed={avgSpeed}
               warningCount={warningCount}
               systemStatus={systemStatus}
@@ -369,8 +318,8 @@ const Index = () => {
         < div className="flex flex-col gap-1.5 overflow-hidden" >
           <SpeedDisplay
             tracks={[
-              { direction: "UP", speed: 45, distance: 5 }, // Approaching
-              { direction: "DOWN", speed: 60, distance: 1 }, // Departing
+              { direction: "UP", speed: trains[0].speed, distance: trains[0].distance },
+              { direction: "DOWN", speed: trains[1].speed, distance: trains[1].distance },
             ]}
           />
           <WeatherTime locationName={stations[0].name} />
@@ -426,7 +375,7 @@ const Index = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-3 my-4">
-            {trains.slice(0, 1).map((train) => (
+            {trains.map((train) => (
               <Button
                 key={train.id}
                 onClick={() => {
